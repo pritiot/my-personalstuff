@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Volt Luau Integrated Engine</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #121212;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #editor-container {
+            width: 100%;
+            height: 100%;
+            padding-top: 15px;
+        }
+
+        /* --- PURE WHITE SMOOTH CARET --- */
+        .monaco-editor .cursors-layer .cursor {
+            background-color: #ffffff !important;
+            border-color: #ffffff !important;
+        }
+
+        .monaco-editor .cursors-layer.cursor-smooth-caret-animation > .cursor {
+            transition: all 0.08s cubic-bezier(0.1, 0.45, 0.1, 1) !important;
+        }
+    </style>
+    
+    <!-- Working Monaco CDN Links Provided -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.43.0/min/vs/loader.min.js"></script>
+    <script>
+        require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.43.0/min/vs' }});
+    </script>
+</head>
+<body>
+
+    <div id="editor-container"></div>
+
+    <script>
+        require(['vs/editor/editor.main'], function() {
+            
+            // 1. Register language
+            monaco.languages.register({ id: 'volt-luau' });
+            
+            const greenGlobalsList = [
+                'game', 'debug', 'bit32', 'buffer', 'BrickColor', 'coroutine', 'CFrame', 
+                'CatalogSearchParams', 'Color3', 'ColorSequence', 'ColorSequenceKeypoint', 
+                'FloatCurveKey', 'RotationCurveKey', 'DateTime', 'DockWidgetPluginGuiInfo', 
+                'DrawFont', 'Drawing', 'DrawingImmediate', 'Enum', 'Faces', 'Font', '_G', 
+                'http', 'Instance', 'TweenInfo', 'LuaStateProxy', 'math', 'NumberRange', 
+                'NumberSequence', 'NumberSequenceKeypoint', 'os', 'oth', 'OverlapParams', 
+                'plugin', 'PathWaypoint', 'PhysicalProperties', 'RaycastParams', 'raknet', 
+                'WebSocket', 'script', 'VoltSignal', 'string', 'on_actor_state_created', 
+                'table', 'task', 'utf8', 'UDim', 'UDim2', 'vector', 'Vector2', 
+                'Vector2int16', 'Vector3', 'Vector3int16', '_VERSION', 'workspace', 'base64', 'Axes', 'cache', 'export', 'shared'
+            ];
+
+            const purpleKeywordsList = [
+                'if', 'else', 'then', 'elseif', 'do', 'not', 'break', 'continue', 
+                'while', 'function', 'for', 'in', 'return', 'local', 'repeat', 'until', 'end', 'and'
+            ];
+
+            const yellowFunctionsList = [
+                'appendfile', 'assert', 'run_on_actor', 'get_current_actor', 'base64_decode', 
+                'base64_encode', 'base64decode', 'base64encode', 'cansignalreplicate', 'checkcaller', 
+                'checkclosure', 'children', 'clear_teleport_queue', 'cleardrawcache', 'clearqueueonteleport', 
+                'clonefunction', 'cloneref', 'clonereference', 'collectgarbage', 'compareinstances', 
+                'consoleclear', 'consolecreate', 'consoledestroy', 'consoleinput', 'consoleprint', 
+                'consolesettitle', 'create_comm_channel', 'get_comm_channel', 'lift_closure', 
+                'get_signal_cons', 'delay', 'delfile', 'delfolder', 'dofile', 'dumpstring', 
+                'elapsedTime', 'error', 'filtergc', 'fireclickdetector', 'firesignal', 
+                'firetouchinterest', 'gcinfo', 'get_hidden_gui', 'gethui', 'print', 'xpcall', 
+                'gethwid', 'getupvalue', 'getupvalues', 'getnilinstances', 'getinstances', 
+                'getscriptfromthread', 'getthreadcontext', 'getthreadidentity', 'setthreadidentity', 
+                'set_thread_identity', 'get_thread_identity', 'get_process_identifier', 'getactors', 
+                'getactorstates', 'getcallbackmember', 'getcallbackvalue', 'getnamecallmethod', 
+                'getcallstack', 'getcallingscript', 'iscclosure', 'islclosure', 'isrbxactive', 
+                'iscustomcclosure', 'isexecutorclosure', 'isexecutorthread', 'isfile', 'isfolder', 
+                'isfunctionhooked', 'isgameactive', 'isnetworkowner', 'isnewcclosure', 'isourclosure', 
+                'isparallel', 'isreadonly', 'isrenderobj', 'isscriptable', 'isvalidlevel', 'iswriteable', 
+                'iswindowactive', 'ipairs', 'hookfunc', 'hookfunction', 'hookmetamethod', 'http_request', 'getconstant', 'getconstants', 'getstack', 'getconnections', 'getfenv', 'getexecutorname', 'getcustomasset', 'getfflag', 'getfpscap', 'getfunctionhash', 'getgc', 'getgenv', 'getgamestate', 'gethiddenproperty', 'gethiddenproperties', 'getidentity', 'getinfo', 'getinstancecache', 'getloadedmodules', 'getproto', 'getprotos', 'getluastate', 'getmetatable', 'getmodules', 'getrawmetatable', 'getrendersteppedList', 'getscriptfunction', 'getrenderproperty', 'getrunningscripts', 'getreg', 'getscriptclosure', 'getscriptbytecode', 'getsenv', 'getscripthash', 'getscripts', 'gettenv', 'getsignalarguments', 'getsignalargumentsinfo', 'getsignalwhitelist', 'keyclick', 'keypress', 'keyrelease', 'identifyexecutor', 'listfiles', 'loadfile', 'lz4compress', 'lz4decompress', 'loadstring','makefolder', 'makereadonly', 'makewritable', 'messagebox', 'mouse1click', 'mouse1press', 'mouse1release', 'mouse2click', 'mouse2press',
+                'mouse2release', 'mousemoveabs', 'newcclosure', 'newlclosure', 'newproxy', 'next', 'queue_on_teleport', 'printidentity', 'pcall', 'pairs', 'queueteleport', 'queueonteleport', 'rawequal', 'rawget', 'rawlen', 'rawset', 'rconsolecreate', 'rconsoledestroy', 'rconsoleclear', 'rconsoleerr', 'rconsolehidden', 'rconsolehide', 'rconsoleinfo', 'rconsoleinput', 'rconsolename', 'rconsoleprint', 'rconsolesettitle', 'rconsoleshow', 'rconsoletoggle', 'rconsolewarn', 'rconsoletop', 'restorefunction', 'saveplace', 'saveinstance', 'select', 'setclipboard', 'service', 'setconstant', 'setrawmetatable', 'setinfo', 'setidentity', 'setfenv', 'setfflag', 'sethiddenproperty', 'setmetatable', 'setnamecallmethod', 'setreadonly', 'setupvalue', 'setrbxclipboard', 'setscriptable', 'setrenderproperty', 'setstack', 'setstackhidden', 'writefile', 'toclipboard', 'tonumber', 'tostring', 'type', 'typeof', 'tick', 'time', 'spawn', 'UserSettings', 'settings'
+            ];
+
+            // Tokenizer setup
+            monaco.languages.setMonarchTokensProvider('volt-luau', {
+    greenGlobals: greenGlobalsList,
+    purpleKeywords: purpleKeywordsList,
+    yellowFunctions: yellowFunctionsList,
+    
+    tokenizer: {
+        root: [
+            // 1. FIRST: Catch the block comment start --[[ before the single line rule eats it
+            [/\-\-\[\[/, 'comment', '@commentBlock'],
+
+            // 2. SECOND: Catch normal single line comments
+            [/\-\-.*/, 'comment'],
+
+            // 3. Catch long block strings [[ text ]] if they aren't part of a comment
+            [/\[\[/, 'string', '@stringBlock'],
+
+            [/_?[a-zA-Z_]\w*/, {
+                cases: {
+                    '@purpleKeywords': 'keyword.purple',
+                    '@greenGlobals': 'global.green',
+                    '@yellowFunctions': 'function.yellow',
+                    '@default': 'identifier.parameter'
+                }
+            }],
+            [/[()]/, 'delimiter.parenthesis'],
+            [/[{}]/, 'delimiter.bracket'],
+            [/[\[\]]/, 'delimiter.square'],
+            [/,/, 'delimiter.comma'],
+            [/"([^"\\]|\\.)*"/, 'string'],
+            [/'([^'\\]|\\.)*'/, 'string'],
+            [/\b\d+\b/, 'number']
+        ],
+
+        // Sub-tracker for Block Comments: Keeps everything grey until literal ]]
+        commentBlock: [
+            [/[^\]\-]+/, 'comment'],
+            [/\]\]/, 'comment', '@pop'], 
+            [/[\-\]]/, 'comment']
+        ],
+
+        // Sub-tracker for Block Strings: Keeps everything orange until literal ]]
+        stringBlock: [
+            [/[^\]]+/, 'string'],
+            [/\]\]/, 'string', '@pop'],
+            [/\]/, 'string']
+        ]
+    }
+});
+            // 2. Define Language Indentation Configuration (Handles custom structural skipping on Enter)
+            monaco.languages.setLanguageConfiguration('volt-luau', {
+    // Keeps your existing onEnterRules for code blocks
+    onEnterRules: [
+        {
+            beforeText: /(^\s*(if|while|for|elseif)\b.*?\b(then|do)\b)|(^\s*(repeat|do)\b)|(function\s*.*?\()/,
+            afterText: /^(?!.*?\bend\b)/,
+            action: {
+                indentAction: monaco.languages.IndentAction.IndentOutdent,
+                appendText: '\nend'
+            }
+        }
+    ],
+    // ADD THIS: Force quotes to behave exactly like brackets or parentheses
+    autoClosingPairs: [
+        { open: '(', close: ')' },
+        { open: '{', close: '}' },
+        { open: '[', close: ']' },
+        { open: '"', close: '"' },
+        { open: "'", close: "'" }
+    ],
+    surroundingPairs: [
+        { open: '(', close: ')' },
+        { open: '{', close: '}' },
+        { open: '[', close: ']' },
+        { open: '"', close: '"' },
+        { open: "'", close: "'" }
+    ]
+});
+
+            // 3. Define Theme colors and styles (Grey notes, Bold purple keywords)
+            monaco.editor.defineTheme('volt-dark-theme', {
+                base: 'vs-dark',
+                inherit: true,
+                rules: [
+                    { token: 'comment', foreground: '808080' },                         // Muted grey notes
+                    { token: 'global.green', foreground: '4EC9B0' },                     // Clean Mint Green Globals
+                    { token: 'keyword.purple', foreground: 'C586C0', fontStyle: 'bold' },// Bold Purple Keywords
+                    { token: 'function.yellow', foreground: 'DCDCAA' },                  // Soft Yellow functions
+                    { token: 'identifier.parameter', foreground: '9CDCFE' },             // Light Sky-Blue parameters
+                    { token: 'string', foreground: 'CE9178' },                           // Text strings
+                    { token: 'number', foreground: 'B5CEA8' },                           // Numbers
+                    { token: 'delimiter', foreground: 'FFFFFF' }                         // White brackets
+                ],
+                colors: {
+                    'editor.background': '#121212',
+                    'editor.foreground': '#9CDCFE',
+                    'editor.lineHighlightBackground': '#00000000', 
+                }
+            });
+
+            // 4. Register snippets for yellow functions & variables
+            monaco.languages.registerCompletionItemProvider('volt-luau', {
+                provideCompletionItems: function(model, position) {
+                    const word = model.getWordUntilPosition(position);
+                    const range = {
+                        startLineNumber: position.lineNumber,
+                        endLineNumber: position.lineNumber,
+                        startColumn: word.startColumn,
+                        endColumn: word.endColumn
+                    };
+
+                    const suggestions = [];
+
+                    yellowFunctionsList.forEach(func => {
+                        suggestions.push({
+                            label: func,
+                            kind: monaco.languages.CompletionItemKind.Function,
+                            documentation: `Volt Luau function: ${func}`,
+                            insertText: func + '($1)',
+                            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                            range: range
+                        });
+                    });
+
+                    greenGlobalsList.forEach(glob => {
+                        suggestions.push({
+                            label: glob,
+                            kind: monaco.languages.CompletionItemKind.Variable,
+                            documentation: `This is a ROBLOX Global: ${glob}`,
+                            insertText: glob,
+                            range: range
+                        });
+                    });
+
+                    return { suggestions: suggestions };
+                }
+            });
+
+            // 5. Instantiate Editor using requested visual options and exact font fallbacks
+            const editor = monaco.editor.create(document.getElementById('editor-container'), {
+                value: "print('hello world')",
+                language: 'volt-luau', 
+                theme: 'volt-dark-theme',
+                fontSize: 14,
+                fontWeight: '380',
+                fontFamily: '"Segoe UI Mono", "JetBrains Mono", "Cascadia Code", "Fira Code", Consolas, monospace',
+                
+                cursorBlinking: 'blink',
+                cursorSmoothCaretAnimation: 'on',
+                cursorStyle: 'line',
+                cursorWidth: 2, 
+
+                minimap: { enabled: true },
+                lineNumbers: 'on',
+                glyphMargin: false,
+                folding: false,
+                scrollbar: {
+                    vertical: 'visible',
+                    horizontal: 'visible'
+                }
+            });
+
+        });
+    </script>
+</body>
+</html>
