@@ -1733,7 +1733,7 @@ DELTA["ba"]["CornerRadius"] = UDim.new(0.30000001192092896, 0);
 -- StarterGui.Delta.Executor.Executor.Overlay.Tabs.AddTab.ImageButton
 DELTA["bb"] = Instance.new("ImageButton", DELTA["b9"]);
 DELTA["bb"]["Active"] = false;
-DELTA["bb"]["Modal"] = true;
+DELTA["bb"]["Modal"] = false;
 DELTA["bb"]["AutoButtonColor"] = false;
 DELTA["bb"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
 DELTA["bb"]["AnchorPoint"] = Vector2.new(1, 0.5);
