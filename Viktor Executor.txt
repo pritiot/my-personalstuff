@@ -92,9 +92,9 @@ else
     DELTA["DaIcon"].Size = UDim2.new(0,45,0,45)
 end
 
-if not isfile("new_logo.png") then
+if not isfile("viktor.png") then
     local new_logo = request({Url = "https://raw.githubusercontent.com/pritiot/my-personalstuff/main/Viktor.png", Method = "GET"})
-    writefile("new_logo.png", new_logo.Body)
+    writefile("viktor.png", new_logo.Body)
 end
 
 
